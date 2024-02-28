@@ -20,21 +20,20 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
 import { Course } from "@prisma/client";
+import { Combobox } from "@/components/ui/combobox";
 
-interface DescriptionFormProps {
+interface CategoryFormProps {
   initialData: Course
   courseId: string;
+  options: {label: string, value: string}[];
 }
 
 const formSchema = z.object({
-  description: z.string().min(1, {
-    message: "Description is required",
-  }),
+  categoryId: z.string().min(1),
 });
  
-const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
+const CategoryForm = ({ initialData, courseId,  options }: CategoryFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
 
@@ -45,7 +44,7 @@ const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      description: initialData?.description || ''
+      categoryId: initialData?.categoryId || ''
     },
   });
 
@@ -61,26 +60,27 @@ const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
         toast.error("Something went wrong")
     }
   };
-
+  const selectedOption = options.find((option) => option.value === initialData.categoryId)
+  
   return (
     <div className="mt-6 border bg-slate-100 rounded-md p-4">
       <div className="form-medium flex items-center justify-between">
-        Course Description
+        Course Categoty
         <Button onClick={toggleEddit} variant="ghost">
           {isEditing ? (
             <>Cancel</>
           ) : (
             <>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit description
+              Edit category
             </>
           )}
         </Button>
       </div>
       {!isEditing && <p className={cn(
         "text-sm mt-2",
-        !initialData.description && "text-slate-500 italic"
-      )}>{initialData.description || "No description"}</p>}
+        !initialData && "text-slate-500 italic"
+      )}>{selectedOption?.label || "No category"}</p>}
       {isEditing && (
         <Form {...form}>
             <form
@@ -89,15 +89,14 @@ const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
             >
                 <FormField 
                 control={form.control}
-                name="description"
+                name="categoryId"
                 render={({ field }) => (
                     <FormItem>
                     <FormControl>
-                        <Textarea
-                        disabled={isSubmitting}
-                        placeholder="e.g. 'This course is about...'"
-                        {...field}
-                        />    
+                      <Combobox 
+                      options = {...options}
+                       {...field}
+                      />
                     </FormControl>   
                     <FormMessage />
                     </FormItem>
@@ -118,4 +117,4 @@ const DescriptionForm = ({ initialData, courseId }: DescriptionFormProps) => {
   );
 };
 
-export default DescriptionForm;
+export default CategoryForm;
